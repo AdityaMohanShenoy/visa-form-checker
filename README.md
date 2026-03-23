@@ -48,7 +48,8 @@ visa-form-checker/
 ├── test-site/            # Sample visa form for testing
 │   └── index.html
 └── scripts/
-    └── start.sh          # One-command backend startup
+    └── start.sh          # One-command backend startup (macOS/Linux)
+    └── start.bat         # One-command backend startup (Windows)
 ```
 
 ## Prerequisites
@@ -61,39 +62,74 @@ visa-form-checker/
 
 ### 1. Install Tesseract OCR
 
+**macOS:**
 ```bash
-# macOS
 brew install tesseract
+```
 
-# Ubuntu/Debian
+**Ubuntu/Debian:**
+```bash
 sudo apt-get install tesseract-ocr
+```
 
-# Verify
+**Windows:**
+Download and run the installer from the [UB-Mannheim Tesseract releases page](https://github.com/UB-Mannheim/tesseract/wiki). During installation:
+- Note the install path (default: `C:\Program Files\Tesseract-OCR\`)
+- Check **"Add to PATH"** so Tesseract is available system-wide
+
+After installation, verify it works:
+```cmd
 tesseract --version
 ```
+
+If the command isn't found, add the install directory to your PATH manually:
+1. Open **System Properties** → **Advanced** → **Environment Variables**
+2. Under **System variables**, find `Path` and click **Edit**
+3. Add `C:\Program Files\Tesseract-OCR\` (or your install path)
+
+---
 
 ### 2. Download MRZ trained data for Tesseract
 
 Tesseract needs a special `mrz` language model to read the MRZ zone on passports.
 
+**macOS (Homebrew):**
 ```bash
-# macOS (Homebrew)
 curl -L -o /opt/homebrew/share/tessdata/mrz.traineddata \
   https://github.com/DoubangoTelecom/tesseractMRZ/raw/master/tessdata_best/mrz.traineddata
+```
 
-# Linux (typical path)
+**Linux (typical path):**
+```bash
 curl -L -o /usr/share/tesseract-ocr/5/tessdata/mrz.traineddata \
   https://github.com/DoubangoTelecom/tesseractMRZ/raw/master/tessdata_best/mrz.traineddata
 ```
 
-If your tessdata directory is different, find it with:
+**Windows:**
+Download the file directly:
+```
+https://github.com/DoubangoTelecom/tesseractMRZ/raw/master/tessdata_best/mrz.traineddata
+```
+Then move it to the `tessdata` folder inside your Tesseract install directory, e.g.:
+```
+C:\Program Files\Tesseract-OCR\tessdata\mrz.traineddata
+```
+
+If you're unsure of your tessdata path, check:
 ```bash
+# macOS/Linux
 tesseract --print-parameters 2>/dev/null | grep tessdata
 # or check: /usr/local/share/tessdata/, /usr/share/tessdata/
+
+# Windows
+tesseract --print-parameters 2>NUL | findstr tessdata
 ```
+
+---
 
 ### 3. Start the backend
 
+**macOS/Linux:**
 ```bash
 # Option A: Use the startup script (creates venv + installs deps automatically)
 ./scripts/start.sh
@@ -106,13 +142,33 @@ pip install -e ".[dev]"
 python -m visa_checker.main
 ```
 
-On first run, the backend will:
-- Create `~/.visa-checker/` directory
+**Windows:**
+```cmd
+# Option A: Use the startup script
+scripts\start.bat
+
+# Option B: Manual setup
+cd backend
+python -m venv .venv
+.venv\Scripts\activate
+pip install -e ".[dev]"
+python -m visa_checker.main
+```
+
+> **Windows note:** If you see a `pip install` error related to `opencv-python`, make sure you have the [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) installed, or try installing the headless variant instead:
+> ```cmd
+> pip install opencv-python-headless
+> ```
+
+On first run (all platforms), the backend will:
+- Create `~/.visa-checker/` directory (`C:\Users\<you>\.visa-checker\` on Windows)
 - Generate an auth token at `~/.visa-checker/auth_token`
 - Initialize the SQLite database at `~/.visa-checker/profiles.db`
 - Print the auth token to the terminal
 
 The server starts at `http://127.0.0.1:5050`. API docs are available at `http://127.0.0.1:5050/docs`.
+
+---
 
 ### 4. Load the Chrome extension
 
@@ -181,9 +237,16 @@ All endpoints require `Authorization: Bearer <token>` header (except `/health`).
 
 A sample Singapore visa application form is included for testing:
 
+**macOS/Linux:**
 ```bash
 cd test-site
 python3 -m http.server 8080
+```
+
+**Windows:**
+```cmd
+cd test-site
+python -m http.server 8080
 ```
 
 Then open `http://localhost:8080` and use the extension to check the page.
@@ -197,7 +260,7 @@ Then open `http://localhost:8080` and use the extension to check the page.
 ## Troubleshooting
 
 **"Error opening data file mrz.traineddata"**
-Tesseract can't find the MRZ language data. See step 2 above to download it.
+Tesseract can't find the MRZ language data. See step 2 above to download it. On Windows, make sure the file is in `C:\Program Files\Tesseract-OCR\tessdata\`.
 
 **"No MRZ detected in image"**
 The MRZ zone couldn't be found. Try:
@@ -206,9 +269,25 @@ The MRZ zone couldn't be found. Try:
 - Ensure the MRZ lines (the `P<IND...` text at the bottom) are clearly visible
 
 **Extension can't connect to backend**
-- Make sure the backend is running (`./scripts/start.sh`)
+- Make sure the backend is running (`./scripts/start.sh` on macOS/Linux, `scripts\start.bat` on Windows)
 - Check the auth token matches what's in `~/.visa-checker/auth_token`
 - Backend must be on `http://127.0.0.1:5050`
+
+**Windows: `start.bat` opens and closes immediately**
+Run the script from a Command Prompt or PowerShell window so you can see error output:
+```cmd
+cd path\to\visa-form-checker
+scripts\start.bat
+```
+
+**Windows: `python` not found**
+Make sure Python 3.11+ is installed and added to PATH. Download from [python.org](https://www.python.org/downloads/). During installation, check **"Add Python to PATH"**.
+
+**Windows: OpenCV install fails**
+Try the headless variant:
+```cmd
+pip install opencv-python-headless
+```
 
 **Form fields not detected on a website**
 The generic form field detector uses label heuristics. It works best with standard HTML forms. Dynamic SPAs with custom components may not be fully supported.
