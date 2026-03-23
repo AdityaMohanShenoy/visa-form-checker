@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      max-width: 600px;
+      margin: 40px auto;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+      color: #1a1a2e;
+      padding: 0 20px;
+    }
+    h1 { font-size: 22px; margin-bottom: 24px; }
+    h2 { font-size: 16px; margin-bottom: 12px; color: #2d3748; }
+    .section {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    label { display: block; font-weight: 600; margin-bottom: 4px; }
+    .hint { font-size: 12px; color: #718096; margin-bottom: 8px; }
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: monospace;
+    }
+    .btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      margin-top: 8px;
+    }
+    .btn-primary { background: #4299e1; color: white; }
+    .btn-primary:hover { background: #3182ce; }
+    .btn-success { background: #48bb78; color: white; }
+    .msg {
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+    .msg-success { background: #c6f6d5; color: #276749; }
+    .msg-error { background: #fed7d7; color: #9b2c2c; }
+    .upload-area {
+      border: 2px dashed #e2e8f0;
+      border-radius: 8px;
+      padding: 30px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .upload-area:hover { border-color: #4299e1; }
+    .upload-area.dragging { border-color: #4299e1; background: #ebf8ff; }
+    .field-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .field-item label { font-size: 12px; color: #718096; font-weight: 400; }
+    .field-item .value { font-weight: 600; font-size: 14px; }
+    .hidden { display: none; }
+
+    /* Profile list */
+    .profile-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .profile-card:hover { border-color: #4299e1; box-shadow: 0 1px 4px rgba(66,153,225,0.15); }
+    .profile-card.expanded { border-color: #4299e1; }
+    .profile-header { display: flex; justify-content: space-between; align-items: center; }
+    .profile-label { font-weight: 600; font-size: 14px; }
+    .profile-meta { font-size: 11px; color: #a0aec0; }
+    .profile-details { margin-top: 12px; display: none; }
+    .profile-card.expanded .profile-details { display: block; }
+    .profile-field-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 16px;
+      margin-bottom: 12px;
+    }
+    .profile-field-grid .pf-label { font-size: 11px; color: #718096; }
+    .profile-field-grid .pf-value { font-size: 13px; font-weight: 600; }
+    .profile-field-grid input.pf-edit {
+      font-size: 13px; font-weight: 600; padding: 2px 6px;
+      border: 1px solid #e2e8f0; border-radius: 4px; width: 100%;
+    }
+    .profile-actions { display: flex; gap: 8px; margin-top: 8px; }
+    .btn-sm { padding: 5px 12px; font-size: 12px; border-radius: 4px; font-weight: 600; cursor: pointer; border: none; }
+    .btn-edit { background: #ebf8ff; color: #2b6cb0; }
+    .btn-edit:hover { background: #bee3f8; }
+    .btn-delete { background: #fff5f5; color: #c53030; }
+    .btn-delete:hover { background: #fed7d7; }
+    .btn-save-edit { background: #48bb78; color: white; }
+    .btn-save-edit:hover { background: #38a169; }
+    .btn-cancel-edit { background: #e2e8f0; color: #4a5568; }
+    .btn-cancel-edit:hover { background: #cbd5e0; }
+    .no-profiles { text-align: center; color: #a0aec0; padding: 24px; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <h1>Visa Form Checker Settings</h1>
+
+  <div class="section">
+    <h2>Backend Connection</h2>
+    <label for="tokenInput">Auth Token</label>
+    <div class="hint">
+      Find your token in <code>~/.visa-checker/auth_token</code> or check the terminal when the backend starts.
+    </div>
+    <input type="password" id="tokenInput" placeholder="Paste your auth token here">
+    <button class="btn btn-primary" id="saveTokenBtn">Save Token</button>
+    <div id="tokenMsg" class="msg hidden"></div>
+  </div>
+
+  <div class="section">
+    <h2>Upload Passport / ID</h2>
+    <div class="upload-area" id="uploadArea">
+      <p>Click or drag an image here</p>
+      <p style="font-size: 12px; color: #718096; margin-top: 4px">
+        Supports JPG, PNG, PDF
+      </p>
+      <input type="file" id="fileInput" accept="image/*,.pdf" style="display:none">
+    </div>
+
+    <div id="ocrResult" class="hidden" style="margin-top: 16px;">
+      <h2>Extracted Fields</h2>
+      <div class="hint">Review and edit before saving as a profile.</div>
+      <div id="fieldsGrid" class="field-grid"></div>
+
+      <div style="margin-top: 16px;">
+        <label for="profileLabel">Profile Label</label>
+        <input type="text" id="profileLabel" placeholder="e.g., John Doe - US Passport">
+        <button class="btn btn-success" id="saveProfileBtn" style="margin-top: 8px;">
+          Save as Profile
+        </button>
+      </div>
+      <div id="profileMsg" class="msg hidden"></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Saved Profiles</h2>
+    <div class="hint">Click a profile to expand details. You can edit or delete profiles.</div>
+    <div id="profilesList"></div>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>

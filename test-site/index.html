@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Immigration &amp; Checkpoints Authority - Visa Application</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f5f5f5; color: #333; }
+    .gov-banner { background: #6b21a8; color: #fff; font-size: 13px; padding: 6px 24px; }
+    .gov-banner a { color: #e9d5ff; }
+    .container { max-width: 900px; margin: 0 auto; padding: 32px 24px; background: #fff; min-height: 100vh; }
+    h1 { font-size: 22px; font-weight: 700; margin-bottom: 32px; }
+    h2 { font-size: 17px; font-weight: 700; margin: 32px 0 16px; padding-bottom: 8px; border-bottom: 2px solid #333; }
+    h3 { font-size: 15px; font-weight: 600; margin: 24px 0 12px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .form-row.two-col { grid-template-columns: 1fr 1fr; }
+    .form-group { display: flex; flex-direction: column; }
+    .form-group label { font-size: 12px; color: #666; margin-bottom: 4px; }
+    .form-group input, .form-group select, .form-group textarea {
+      border: 1px solid #ddd; border-radius: 4px; padding: 8px 10px; font-size: 14px;
+      background: #fff; font-family: inherit;
+    }
+    .form-group textarea { resize: vertical; min-height: 60px; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      outline: none; border-color: #6b21a8;
+    }
+    .section-note { font-size: 12px; color: #888; margin-bottom: 8px; }
+    .photo-placeholder { width: 120px; height: 150px; border: 1px dashed #ccc; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #aaa; float: right; margin-left: 16px; }
+    .submit-row { margin-top: 32px; text-align: right; }
+    .submit-row button { background: #6b21a8; color: #fff; border: none; padding: 10px 32px; border-radius: 4px; font-size: 14px; cursor: pointer; }
+    .submit-row button:hover { background: #581c87; }
+  </style>
+</head>
+<body>
+
+<div class="gov-banner">
+  🏛 A Singapore Government Agency Website <a href="#">How to identify</a>
+</div>
+
+<div class="container">
+
+  <h1>Visa Application Form</h1>
+
+  <div class="photo-placeholder">Photo</div>
+
+  <h2>Particulars of Applicant</h2>
+
+  <form id="visaForm">
+
+    <div class="form-row two-col">
+      <div class="form-group">
+        <label for="full_name">Name</label>
+        <input type="text" id="full_name" name="full_name" value="SAXENA PARV MAHESH">
+      </div>
+      <div class="form-group">
+        <label for="date_of_birth">Date Of Birth</label>
+        <input type="text" id="date_of_birth" name="date_of_birth" value="03/07/2008">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="gender">Sex</label>
+        <select id="gender" name="gender">
+          <option value="MALE" selected>MALE</option>
+          <option value="FEMALE">FEMALE</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="race">Race</label>
+        <input type="text" id="race" name="race" value="INDIAN">
+      </div>
+      <div class="form-group">
+        <label for="place_of_birth">Country/Place of Birth</label>
+        <input type="text" id="place_of_birth" name="place_of_birth" value="INDIA">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="state_province">State/Province of Birth</label>
+        <input type="text" id="state_province" name="state_province" value="MADHYA PRADESH">
+      </div>
+      <div class="form-group">
+        <label for="nationality">Nationality/Citizenship</label>
+        <input type="text" id="nationality" name="nationality" value="INDIAN">
+      </div>
+      <div class="form-group">
+        <label for="religion">Religion</label>
+        <input type="text" id="religion" name="religion" value="HINDUISM">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="marital_status">Marital Status</label>
+        <select id="marital_status" name="marital_status">
+          <option value="SINGLE" selected>SINGLE</option>
+          <option value="MARRIED">MARRIED</option>
+          <option value="DIVORCED">DIVORCED</option>
+          <option value="WIDOWED">WIDOWED</option>
+        </select>
+      </div>
+    </div>
+
+    <h2>Travel Document</h2>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="document_type">Type</label>
+        <input type="text" id="document_type" name="document_type" value="INTERNATIONAL PASSPORT">
+      </div>
+      <div class="form-group">
+        <label for="issuing_country">Country/Place of Issue</label>
+        <input type="text" id="issuing_country" name="issuing_country" value="INDIA">
+      </div>
+      <div class="form-group">
+        <label for="place_of_issue">Place of Issue</label>
+        <input type="text" id="place_of_issue" name="place_of_issue" value="MADHYA PRADESH">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="passport_number">Travel Document Number</label>
+        <input type="text" id="passport_number" name="passport_number" value="AL608966">
+      </div>
+      <div class="form-group">
+        <label for="issue_date">Issue Date</label>
+        <input type="text" id="issue_date" name="issue_date" value="22 Jan 2026">
+      </div>
+      <div class="form-group">
+        <label for="expiry_date">Expiry Date</label>
+        <input type="text" id="expiry_date" name="expiry_date" value="21 Dec 2035">
+      </div>
+    </div>
+
+    <h2>Address in Country/Place of Origin/Residence</h2>
+
+    <div class="form-row two-col">
+      <div class="form-group">
+        <label for="country_of_residence">Country/Place of Origin/Residence</label>
+        <input type="text" id="country_of_residence" name="country_of_residence" value="INDIA">
+      </div>
+      <div class="form-group">
+        <label for="address">Address</label>
+        <textarea id="address" name="address">NO 1502 EMBASSY GROVE RUSTAM BAGH MAIN ROAD KODHALLI BENGALURU 560017</textarea>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="province_residence">Province/State of Origin/Residence</label>
+        <input type="text" id="province_residence" name="province_residence" value="KARNATAKA">
+      </div>
+    </div>
+
+    <h2>Additional Information of Applicant</h2>
+    <h3>Contact Information</h3>
+
+    <div class="form-row two-col">
+      <div class="form-group">
+        <label for="email">Applicant's Email Address</label>
+        <input type="email" id="email" name="email" value="DILIPHS86@GMAIL.COM">
+      </div>
+      <div class="form-group">
+        <label for="phone">Applicant's Contact Number</label>
+        <input type="tel" id="phone" name="phone" value="+91 8095084500">
+      </div>
+    </div>
+
+    <h3>Occupation &amp; Education Information</h3>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="occupation">Occupation</label>
+        <input type="text" id="occupation" name="occupation" value="STUDENT">
+      </div>
+      <div class="form-group">
+        <label for="education">Highest Academic / Professional Qualifications Attained</label>
+        <input type="text" id="education" name="education" value="UNIVERSITY">
+      </div>
+      <div class="form-group">
+        <label for="income">Annual Income (Singapore Dollars)</label>
+        <input type="text" id="income" name="income" value="0">
+      </div>
+    </div>
+
+    <h2>Information of Visit</h2>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="arrival_date">Expected Date of Arrival</label>
+        <input type="text" id="arrival_date" name="arrival_date" value="07 Feb 2026">
+      </div>
+      <div class="form-group">
+        <label for="visa_type">Type Of Visa</label>
+        <input type="text" id="visa_type" name="visa_type" value="MULTIPLE JOURNEY">
+      </div>
+      <div class="form-group">
+        <label for="duration">How long does the applicant intend to stay in Singapore?</label>
+        <select id="duration" name="duration">
+          <option value="LESS THAN 30 DAYS" selected>LESS THAN 30 DAYS</option>
+          <option value="30-90 DAYS">30-90 DAYS</option>
+          <option value="MORE THAN 90 DAYS">MORE THAN 90 DAYS</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="purpose">Purpose of visit</label>
+        <input type="text" id="purpose" name="purpose" value="SOCIAL">
+      </div>
+      <div class="form-group">
+        <label for="purpose_detail">Choose a purpose</label>
+        <input type="text" id="purpose_detail" name="purpose_detail" value="SOCIAL VISIT (TOUR WITH ITINERARY)">
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:16px">
+      <label for="additional_info">Additional information to support this application</label>
+      <textarea id="additional_info" name="additional_info" rows="3">1.STUDENT STUDY IN CHRIST UNIVERSITY PARENT BANK BAL SGD 1390 2.GROUP 29 PAX TRAVEL ARRANGED BY CHRIST UNIVERSITY TRAVELLING WITH FACULTY AL991765 3.NIL 4.NIL</textarea>
+    </div>
+
+    <h2>Address in Singapore</h2>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="sg_accommodation">Where will the applicant be staying in Singapore?</label>
+        <input type="text" id="sg_accommodation" name="sg_accommodation" value="HOTEL">
+      </div>
+      <div class="form-group">
+        <label for="sg_postal">Postal Code</label>
+        <input type="text" id="sg_postal" name="sg_postal" value="">
+      </div>
+      <div class="form-group">
+        <label for="sg_block">Block/House Number</label>
+        <input type="text" id="sg_block" name="sg_block" value="">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="sg_street">Street Name</label>
+        <input type="text" id="sg_street" name="sg_street" value="">
+      </div>
+      <div class="form-group">
+        <label for="sg_floor">Floor Number</label>
+        <input type="text" id="sg_floor" name="sg_floor" value="">
+      </div>
+      <div class="form-group">
+        <label for="sg_unit">Unit Number</label>
+        <input type="text" id="sg_unit" name="sg_unit" value="">
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:16px">
+      <label for="sg_contact">Contact Number</label>
+      <input type="text" id="sg_contact" name="sg_contact" value="">
+    </div>
+
+    <div class="form-group" style="margin-bottom:16px">
+      <label for="resided_elsewhere">Has the applicant resided in other countries/places, other than the country/place of origin, for one year or more during the last 5 years?</label>
+      <select id="resided_elsewhere" name="resided_elsewhere">
+        <option value="NO" selected>NO</option>
+        <option value="YES">YES</option>
+      </select>
+    </div>
+
+    <div class="submit-row">
+      <button type="submit">Submit Application</button>
+    </div>
+
+  </form>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "Visa Form Checker",
+  "version": "0.1.0",
+  "description": "Verify visa application form fields against passport OCR data",
+  "permissions": ["activeTab", "storage"],
+  "host_permissions": ["http://127.0.0.1:5050/*"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["adapters/generic.js", "content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "options_page": "options.html",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
