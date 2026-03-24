@@ -1,9 +1,15 @@
-from fastapi import APIRouter, UploadFile, File
+from fastapi import APIRouter, UploadFile, File, HTTPException
 
 from visa_checker.models import OCRResult
 from visa_checker.services.mrz_service import extract_from_image
 
 router = APIRouter(tags=["OCR"])
+
+MAX_FILE_SIZE = 50 * 1024 * 1024  # 50 MB
+ALLOWED_CONTENT_TYPES = {
+    "image/jpeg", "image/png", "image/webp", "image/tiff",
+    "image/bmp", "application/pdf",
+}
 
 
 def _pdf_to_images(pdf_bytes: bytes) -> list[bytes]:
@@ -23,9 +29,18 @@ def _pdf_to_images(pdf_bytes: bytes) -> list[bytes]:
 @router.post("/ocr/extract", response_model=OCRResult)
 async def extract_mrz(file: UploadFile = File(...)):
     """Upload a passport/ID image or PDF and extract MRZ data."""
-    file_bytes = await file.read()
     content_type = file.content_type or ""
     filename = (file.filename or "").lower()
+
+    # Validate content type (allow unknown for files detected by extension)
+    if content_type and content_type not in ALLOWED_CONTENT_TYPES:
+        if not (filename.endswith((".jpg", ".jpeg", ".png", ".webp", ".tiff", ".bmp", ".pdf"))):
+            raise HTTPException(status_code=400, detail="Unsupported file type")
+
+    # Read with size limit
+    file_bytes = await file.read(MAX_FILE_SIZE + 1)
+    if len(file_bytes) > MAX_FILE_SIZE:
+        raise HTTPException(status_code=413, detail="File too large (max 50 MB)")
 
     # Detect PDF by content type or filename
     if content_type == "application/pdf" or filename.endswith(".pdf"):

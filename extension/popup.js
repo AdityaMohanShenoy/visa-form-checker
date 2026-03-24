@@ -25,30 +25,42 @@ async function init() {
 
   if (!online) {
     checkBtn.disabled = true;
-    profileSelect.innerHTML = '<option value="">Backend offline</option>';
+    profileSelect.textContent = "";
+    const offOpt = document.createElement("option");
+    offOpt.value = "";
+    offOpt.textContent = "Backend offline";
+    profileSelect.appendChild(offOpt);
     return;
   }
 
   // Load profiles
   const resp = await chrome.runtime.sendMessage({ action: "getProfiles" });
   if (resp.error) {
-    profileSelect.innerHTML = `<option value="">Error: ${resp.error}</option>`;
+    profileSelect.textContent = "";
+    const errOpt = document.createElement("option");
+    errOpt.value = "";
+    errOpt.textContent = "Error: " + resp.error;
+    profileSelect.appendChild(errOpt);
     return;
   }
 
   const profiles = resp.profiles || [];
   if (profiles.length === 0) {
-    profileSelect.innerHTML =
-      '<option value="">No profiles — add one in Settings</option>';
+    profileSelect.textContent = "";
+    const emptyOpt = document.createElement("option");
+    emptyOpt.value = "";
+    emptyOpt.textContent = "No profiles \u2014 add one in Settings";
+    profileSelect.appendChild(emptyOpt);
     return;
   }
 
-  profileSelect.innerHTML = profiles
-    .map(
-      (p) =>
-        `<option value="${p.id}">${p.label} (${p.passport_number || "no passport#"})</option>`
-    )
-    .join("");
+  profileSelect.textContent = "";
+  for (const p of profiles) {
+    const opt = document.createElement("option");
+    opt.value = p.id;
+    opt.textContent = `${p.label} (${p.passport_number || "no passport#"})`;
+    profileSelect.appendChild(opt);
+  }
   checkBtn.disabled = false;
 }
 
@@ -70,7 +82,11 @@ checkBtn.addEventListener("click", async () => {
   checkBtn.textContent = "Check This Page";
 
   if (resp.error) {
-    resultsDiv.innerHTML = `<div class="error-msg">${resp.error}</div>`;
+    resultsDiv.textContent = "";
+    const errDiv = document.createElement("div");
+    errDiv.className = "error-msg";
+    errDiv.textContent = resp.error;
+    resultsDiv.appendChild(errDiv);
     resultsDiv.classList.remove("hidden");
     return;
   }
@@ -83,42 +99,61 @@ function renderResults(results) {
   const matches = results.matches || [];
   const unmatched = results.unmatched_fields || [];
 
-  let html = "";
+  resultsDiv.textContent = "";
 
   // Summary
   if (mismatches.length === 0 && matches.length > 0) {
-    html += `<div class="summary summary-good">\u2713 All ${matches.length} fields match</div>`;
+    const summary = document.createElement("div");
+    summary.className = "summary summary-good";
+    summary.textContent = "\u2713 All " + matches.length + " fields match";
+    resultsDiv.appendChild(summary);
   } else if (mismatches.length > 0) {
     const errors = mismatches.filter((m) => m.severity === "error").length;
     const warnings = mismatches.filter((m) => m.severity === "warning").length;
-    html += `<div class="summary summary-bad">${errors} error(s), ${warnings} warning(s) found</div>`;
+    const summary = document.createElement("div");
+    summary.className = "summary summary-bad";
+    summary.textContent = errors + " error(s), " + warnings + " warning(s) found";
+    resultsDiv.appendChild(summary);
   }
 
   // Mismatches first
   for (const m of mismatches) {
     const icon = m.severity === "error" ? "\u2717" : "\u26a0";
     const cls = m.severity === "error" ? "result-error" : "result-warning";
-    html += `<div class="result-item ${cls}">
-      <span class="result-icon">${icon}</span>
-      <div><strong>${m.form_field}</strong>: "${m.form_value}" \u2192 expected "${m.expected_value}"</div>
-    </div>`;
+    const item = document.createElement("div");
+    item.className = "result-item " + cls;
+    const iconSpan = document.createElement("span");
+    iconSpan.className = "result-icon";
+    iconSpan.textContent = icon;
+    const info = document.createElement("div");
+    const strong = document.createElement("strong");
+    strong.textContent = m.form_field;
+    info.append(strong, ': "' + m.form_value + '" \u2192 expected "' + m.expected_value + '"');
+    item.append(iconSpan, info);
+    resultsDiv.appendChild(item);
   }
 
   // Matches
   for (const m of matches) {
-    html += `<div class="result-item result-match">
-      <span class="result-icon">\u2713</span>
-      <div><strong>${m.form_field}</strong>: "${m.form_value}" (${m.match_type})</div>
-    </div>`;
+    const item = document.createElement("div");
+    item.className = "result-item result-match";
+    const iconSpan = document.createElement("span");
+    iconSpan.className = "result-icon";
+    iconSpan.textContent = "\u2713";
+    const info = document.createElement("div");
+    const strong = document.createElement("strong");
+    strong.textContent = m.form_field;
+    info.append(strong, ': "' + m.form_value + '" (' + m.match_type + ')');
+    item.append(iconSpan, info);
+    resultsDiv.appendChild(item);
   }
 
   if (unmatched.length > 0) {
-    html += `<div style="font-size:11px;color:#718096;margin-top:8px">
-      Unmatched fields: ${unmatched.join(", ")}
-    </div>`;
+    const unmatchedDiv = document.createElement("div");
+    unmatchedDiv.style.cssText = "font-size:11px;color:#718096;margin-top:8px";
+    unmatchedDiv.textContent = "Unmatched fields: " + unmatched.join(", ");
+    resultsDiv.appendChild(unmatchedDiv);
   }
-
-  resultsDiv.innerHTML = html;
   resultsDiv.classList.remove("hidden");
 }
 

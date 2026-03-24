@@ -63,7 +63,12 @@ fileInput.addEventListener("change", () => {
 });
 
 async function handleFile(file) {
-  uploadArea.innerHTML = `<p>Processing <strong>${file.name}</strong>...</p>`;
+  uploadArea.textContent = "";
+  const processingP = document.createElement("p");
+  const strong = document.createElement("strong");
+  strong.textContent = file.name;
+  processingP.append("Processing ", strong, "...");
+  uploadArea.appendChild(processingP);
 
   try {
     const token = (await chrome.storage.local.get("authToken")).authToken;
@@ -82,19 +87,29 @@ async function handleFile(file) {
     extractedData = data;
 
     if (!data.mrz.success) {
-      uploadArea.innerHTML = `
-        <p style="color: #c53030">MRZ extraction failed</p>
-        <p style="font-size: 12px; color: #718096">${data.mrz.error || "Unknown error"}</p>
-        <p style="font-size: 12px; margin-top: 8px; cursor: pointer; color: #4299e1">Click to try another image</p>
-      `;
+      uploadArea.textContent = "";
+      const failP = document.createElement("p");
+      failP.style.color = "#c53030";
+      failP.textContent = "MRZ extraction failed";
+      const errP = document.createElement("p");
+      errP.style.cssText = "font-size:12px;color:#718096";
+      errP.textContent = data.mrz.error || "Unknown error";
+      const retryP = document.createElement("p");
+      retryP.style.cssText = "font-size:12px;margin-top:8px;cursor:pointer;color:#4299e1";
+      retryP.textContent = "Click to try another image";
+      uploadArea.append(failP, errP, retryP);
       return;
     }
 
     // Show extracted fields
-    uploadArea.innerHTML = `
-      <p style="color: #38a169">MRZ extracted successfully</p>
-      <p style="font-size: 12px; cursor: pointer; color: #4299e1; margin-top: 4px">Click to upload another</p>
-    `;
+    uploadArea.textContent = "";
+    const successP = document.createElement("p");
+    successP.style.color = "#38a169";
+    successP.textContent = "MRZ extracted successfully";
+    const anotherP = document.createElement("p");
+    anotherP.style.cssText = "font-size:12px;cursor:pointer;color:#4299e1;margin-top:4px";
+    anotherP.textContent = "Click to upload another";
+    uploadArea.append(successP, anotherP);
 
     renderFields(data.mrz.fields);
     ocrResult.classList.remove("hidden");
@@ -107,10 +122,14 @@ async function handleFile(file) {
       ? `${name} - ${data.mrz.fields.issuing_country || "Passport"}`
       : "";
   } catch (err) {
-    uploadArea.innerHTML = `
-      <p style="color: #c53030">Error: ${err.message}</p>
-      <p style="font-size: 12px; cursor: pointer; color: #4299e1; margin-top: 4px">Click to try again</p>
-    `;
+    uploadArea.textContent = "";
+    const errP = document.createElement("p");
+    errP.style.color = "#c53030";
+    errP.textContent = "Error: " + err.message;
+    const retryP = document.createElement("p");
+    retryP.style.cssText = "font-size:12px;cursor:pointer;color:#4299e1;margin-top:4px";
+    retryP.textContent = "Click to try again";
+    uploadArea.append(errP, retryP);
   }
 }
 
@@ -129,13 +148,17 @@ function renderFields(fields) {
 
   fieldsGrid.innerHTML = "";
   for (const [key, label] of Object.entries(labels)) {
-    const value = fields[key] || "—";
-    fieldsGrid.innerHTML += `
-      <div class="field-item">
-        <label>${label}</label>
-        <div class="value" data-field="${key}">${value}</div>
-      </div>
-    `;
+    const value = fields[key] || "\u2014";
+    const item = document.createElement("div");
+    item.className = "field-item";
+    const lbl = document.createElement("label");
+    lbl.textContent = label;
+    const val = document.createElement("div");
+    val.className = "value";
+    val.dataset.field = key;
+    val.textContent = value;
+    item.append(lbl, val);
+    fieldsGrid.appendChild(item);
   }
 }
 
@@ -221,37 +244,66 @@ async function loadProfiles() {
       return;
     }
 
-    list.innerHTML = profiles.map((p) => {
-      const fieldRows = Object.entries(PROFILE_FIELDS)
-        .map(([key, label]) => {
-          const val = p[key] || "—";
-          return `
-            <div>
-              <div class="pf-label">${label}</div>
-              <div class="pf-value" data-pf="${p.id}" data-key="${key}">${val}</div>
-            </div>`;
-        })
-        .join("");
+    list.innerHTML = "";
+    for (const p of profiles) {
+      const card = document.createElement("div");
+      card.className = "profile-card";
+      card.dataset.id = p.id;
 
-      const date = p.updated_at ? new Date(p.updated_at).toLocaleDateString() : "";
+      const header = document.createElement("div");
+      header.className = "profile-header";
+      header.dataset.toggle = p.id;
+      const labelSpan = document.createElement("span");
+      labelSpan.className = "profile-label";
+      labelSpan.textContent = p.label;
+      const metaSpan = document.createElement("span");
+      metaSpan.className = "profile-meta";
+      metaSpan.textContent = p.updated_at ? new Date(p.updated_at).toLocaleDateString() : "";
+      header.append(labelSpan, metaSpan);
 
-      return `
-        <div class="profile-card" data-id="${p.id}">
-          <div class="profile-header" data-toggle="${p.id}">
-            <span class="profile-label">${p.label}</span>
-            <span class="profile-meta">${date}</span>
-          </div>
-          <div class="profile-details">
-            <div class="profile-field-grid">${fieldRows}</div>
-            <div class="profile-actions">
-              <button class="btn-sm btn-edit" data-edit="${p.id}">Edit</button>
-              <button class="btn-sm btn-save-edit hidden" data-save="${p.id}">Save</button>
-              <button class="btn-sm btn-cancel-edit hidden" data-cancel="${p.id}">Cancel</button>
-              <button class="btn-sm btn-delete" data-delete="${p.id}" data-label="${p.label}">Delete</button>
-            </div>
-          </div>
-        </div>`;
-    }).join("");
+      const details = document.createElement("div");
+      details.className = "profile-details";
+      const fieldGrid = document.createElement("div");
+      fieldGrid.className = "profile-field-grid";
+      for (const [key, label] of Object.entries(PROFILE_FIELDS)) {
+        const row = document.createElement("div");
+        const lbl = document.createElement("div");
+        lbl.className = "pf-label";
+        lbl.textContent = label;
+        const val = document.createElement("div");
+        val.className = "pf-value";
+        val.dataset.pf = p.id;
+        val.dataset.key = key;
+        val.textContent = p[key] || "\u2014";
+        row.append(lbl, val);
+        fieldGrid.appendChild(row);
+      }
+
+      const actions = document.createElement("div");
+      actions.className = "profile-actions";
+      const editBtn = document.createElement("button");
+      editBtn.className = "btn-sm btn-edit";
+      editBtn.dataset.edit = p.id;
+      editBtn.textContent = "Edit";
+      const saveBtn = document.createElement("button");
+      saveBtn.className = "btn-sm btn-save-edit hidden";
+      saveBtn.dataset.save = p.id;
+      saveBtn.textContent = "Save";
+      const cancelBtn = document.createElement("button");
+      cancelBtn.className = "btn-sm btn-cancel-edit hidden";
+      cancelBtn.dataset.cancel = p.id;
+      cancelBtn.textContent = "Cancel";
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "btn-sm btn-delete";
+      deleteBtn.dataset.delete = p.id;
+      deleteBtn.dataset.label = p.label;
+      deleteBtn.textContent = "Delete";
+      actions.append(editBtn, saveBtn, cancelBtn, deleteBtn);
+
+      details.append(fieldGrid, actions);
+      card.append(header, details);
+      list.appendChild(card);
+    }
 
     // Attach event listeners (CSP blocks inline onclick)
     list.querySelectorAll("[data-toggle]").forEach((el) => {
@@ -284,13 +336,24 @@ function editProfile(id) {
   // Replace values with inputs
   card.querySelectorAll(`.pf-value[data-pf="${id}"]`).forEach((el) => {
     const key = el.dataset.key;
-    const val = el.textContent === "—" ? "" : el.textContent;
-    el.innerHTML = `<input class="pf-edit" data-edit-key="${key}" value="${val}">`;
+    const val = el.textContent === "\u2014" ? "" : el.textContent;
+    el.textContent = "";
+    const input = document.createElement("input");
+    input.className = "pf-edit";
+    input.dataset.editKey = key;
+    input.value = val;
+    el.appendChild(input);
   });
   // Also make label editable
   const labelEl = card.querySelector(".profile-label");
   const labelVal = labelEl.textContent;
-  labelEl.innerHTML = `<input class="pf-edit" data-edit-key="label" value="${labelVal}" style="font-weight:600;font-size:14px;width:100%">`;
+  labelEl.textContent = "";
+  const labelInput = document.createElement("input");
+  labelInput.className = "pf-edit";
+  labelInput.dataset.editKey = "label";
+  labelInput.value = labelVal;
+  labelInput.style.cssText = "font-weight:600;font-size:14px;width:100%";
+  labelEl.appendChild(labelInput);
   // Toggle buttons
   card.querySelector(".btn-edit").classList.add("hidden");
   card.querySelector(`[data-save="${id}"]`).classList.remove("hidden");

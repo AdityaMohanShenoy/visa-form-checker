@@ -23,7 +23,15 @@ app = FastAPI(title="Visa Form Checker", version="0.1.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Extension origins are opaque; validated via token
+    allow_origins=[
+        "http://127.0.0.1",
+        "http://localhost",
+        "http://127.0.0.1:5050",
+        "http://localhost:5050",
+        "http://127.0.0.1:8080",
+        "http://localhost:8080",
+    ],
+    allow_origin_regex=r"^chrome-extension://.*$",
     allow_methods=["*"],
     allow_headers=["*"],
 )
