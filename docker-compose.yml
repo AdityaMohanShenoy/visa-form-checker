@@ -1,0 +1,28 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5050:5050"
+    volumes:
+      - visa-checker-data:/data
+    environment:
+      - VISA_CHECKER_HOST=0.0.0.0
+      - VISA_CHECKER_PORT=5050
+      - VISA_CHECKER_DATA_DIR=/data
+      - VISA_CHECKER_RELOAD=false
+    restart: unless-stopped
+
+  test-site:
+    image: python:3.12-slim
+    working_dir: /site
+    volumes:
+      - ./test-site:/site:ro
+    ports:
+      - "8080:8080"
+    command: python3 -m http.server 8080
+    restart: unless-stopped
+
+volumes:
+  visa-checker-data:

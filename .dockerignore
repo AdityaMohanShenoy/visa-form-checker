@@ -1,0 +1,9 @@
+backend/.venv/
+**/__pycache__/
+**/*.pyc
+**/*.egg-info/
+.git/
+.claude/
+extension/
+*.db
+.DS_Store

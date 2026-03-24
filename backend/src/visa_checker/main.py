@@ -50,8 +50,10 @@ async def health():
 
 
 def main():
+    import os
     import uvicorn
-    uvicorn.run("visa_checker.main:app", host=HOST, port=PORT, reload=True)
+    reload = os.environ.get("VISA_CHECKER_RELOAD", "true").lower() == "true"
+    uvicorn.run("visa_checker.main:app", host=HOST, port=PORT, reload=reload)
 
 
 if __name__ == "__main__":

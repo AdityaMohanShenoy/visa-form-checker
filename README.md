@@ -47,20 +47,79 @@ visa-form-checker/
 │   └── adapters/generic.js   # Heuristic form field detector
 ├── test-site/            # Sample visa form for testing
 │   └── index.html
-└── scripts/
-    └── start.sh          # One-command backend startup (macOS/Linux)
-    └── start.bat         # One-command backend startup (Windows)
+├── scripts/
+│   └── start.sh          # One-command backend startup (macOS/Linux)
+│   └── start.bat         # One-command backend startup (Windows)
+├── Dockerfile            # Backend container image
+├── docker-compose.yml    # Docker orchestration (backend + test-site)
+└── .dockerignore
 ```
 
 ## Prerequisites
 
-- **Python 3.11+**
-- **Tesseract OCR** with the `mrz` trained data
 - **Google Chrome** (or Chromium-based browser)
+- **Docker** (for Docker setup) OR **Python 3.11+** and **Tesseract OCR** (for manual setup)
 
 ## Setup
 
-### 1. Install Tesseract OCR
+There are two ways to set up the backend: **Docker (recommended)** or **Manual**. Choose one.
+
+---
+
+### Option A: Docker Setup (Recommended)
+
+Docker handles everything automatically — Python, Tesseract OCR, MRZ data, and all dependencies are bundled into the container. No manual installation required.
+
+#### Prerequisites
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running
+
+#### 1. Start the backend
+
+```bash
+docker compose up --build -d
+```
+
+This will:
+- Build the backend image (Python 3.12 + Tesseract OCR + MRZ trained data)
+- Start the backend server on `http://localhost:5050`
+- Start a test site server on `http://localhost:8080`
+- Create a persistent Docker volume for the auth token and database
+
+#### 2. Get the auth token
+
+```bash
+docker compose exec backend cat /data/auth_token
+```
+
+Copy this token — you'll need it to configure the Chrome extension.
+
+#### 3. View logs (optional)
+
+```bash
+docker compose logs -f backend
+```
+
+#### 4. Stop the backend
+
+```bash
+docker compose down
+```
+
+Your data (auth token and profiles database) is persisted in a Docker volume and will survive restarts.
+
+To completely reset (delete all data):
+```bash
+docker compose down -v
+```
+
+---
+
+### Option B: Manual Setup
+
+If you prefer not to use Docker, you can set everything up manually.
+
+#### 1. Install Tesseract OCR
 
 **macOS:**
 ```bash
@@ -87,9 +146,7 @@ If the command isn't found, add the install directory to your PATH manually:
 2. Under **System variables**, find `Path` and click **Edit**
 3. Add `C:\Program Files\Tesseract-OCR\` (or your install path)
 
----
-
-### 2. Download MRZ trained data for Tesseract
+#### 2. Download MRZ trained data for Tesseract
 
 Tesseract needs a special `mrz` language model to read the MRZ zone on passports.
 
@@ -99,7 +156,7 @@ curl -L -o /opt/homebrew/share/tessdata/mrz.traineddata \
   https://github.com/DoubangoTelecom/tesseractMRZ/raw/master/tessdata_best/mrz.traineddata
 ```
 
-**Linux (typical path):**
+**Linux:**
 ```bash
 curl -L -o /usr/share/tesseract-ocr/5/tessdata/mrz.traineddata \
   https://github.com/DoubangoTelecom/tesseractMRZ/raw/master/tessdata_best/mrz.traineddata
@@ -125,9 +182,7 @@ tesseract --print-parameters 2>/dev/null | grep tessdata
 tesseract --print-parameters 2>NUL | findstr tessdata
 ```
 
----
-
-### 3. Start the backend
+#### 3. Start the backend
 
 **macOS/Linux:**
 ```bash
@@ -170,18 +225,26 @@ The server starts at `http://127.0.0.1:5050`. API docs are available at `http://
 
 ---
 
-### 4. Load the Chrome extension
+### Load the Chrome Extension
+
+These steps are the same regardless of which backend setup you chose.
+
+#### 1. Load the extension
 
 1. Open `chrome://extensions/` in Chrome
 2. Enable **Developer mode** (toggle in top-right corner)
 3. Click **Load unpacked**
 4. Select the `extension/` directory from this repo
 
-### 5. Configure the extension
+> **Note:** You must select the `extension/` folder specifically, not the repo root. Chrome needs the folder that directly contains `manifest.json`.
+
+#### 2. Configure the extension
 
 1. Click the Visa Form Checker extension icon in Chrome
 2. Click **Settings** (or right-click icon > Options)
-3. Paste the auth token from step 3 (find it in the terminal output or at `~/.visa-checker/auth_token`)
+3. Paste the auth token:
+   - **Docker setup:** run `docker compose exec backend cat /data/auth_token`
+   - **Manual setup:** find it in the terminal output or at `~/.visa-checker/auth_token`
 4. Click **Save Token**
 
 ## Usage
@@ -235,7 +298,11 @@ All endpoints require `Authorization: Bearer <token>` header (except `/health`).
 
 ## Test Site
 
-A sample Singapore visa application form is included for testing:
+A sample Singapore visa application form is included for testing.
+
+**Docker setup:** The test site starts automatically at `http://localhost:8080` with `docker compose up`.
+
+**Manual setup:**
 
 **macOS/Linux:**
 ```bash
@@ -269,9 +336,12 @@ The MRZ zone couldn't be found. Try:
 - Ensure the MRZ lines (the `P<IND...` text at the bottom) are clearly visible
 
 **Extension can't connect to backend**
-- Make sure the backend is running (`./scripts/start.sh` on macOS/Linux, `scripts\start.bat` on Windows)
-- Check the auth token matches what's in `~/.visa-checker/auth_token`
+- Make sure the backend is running (`docker compose up -d`, `./scripts/start.sh` on macOS/Linux, or `scripts\start.bat` on Windows)
+- Check the auth token matches (run `docker compose exec backend cat /data/auth_token` or check `~/.visa-checker/auth_token`)
 - Backend must be on `http://127.0.0.1:5050`
+
+**"Manifest file is missing or unreadable" when loading extension**
+- Make sure you selected the `extension/` folder, not the repo root. Chrome needs the folder containing `manifest.json`.
 
 **Windows: `start.bat` opens and closes immediately**
 Run the script from a Command Prompt or PowerShell window so you can see error output:
