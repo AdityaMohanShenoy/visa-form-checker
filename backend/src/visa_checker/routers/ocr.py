@@ -19,8 +19,8 @@ def _pdf_to_images(pdf_bytes: bytes) -> list[bytes]:
     images: list[bytes] = []
     doc = fitz.open(stream=pdf_bytes, filetype="pdf")
     for page in doc:
-        # Render at 2x resolution for better OCR
-        pix = page.get_pixmap(dpi=300)
+        # 200 DPI is sufficient for scanned docs and much faster than 300
+        pix = page.get_pixmap(dpi=200)
         images.append(pix.tobytes("jpeg"))
     doc.close()
     return images
@@ -45,14 +45,14 @@ async def extract_mrz(file: UploadFile = File(...)):
     # Detect PDF by content type or filename
     if content_type == "application/pdf" or filename.endswith(".pdf"):
         page_images = _pdf_to_images(file_bytes)
-        # Try each page until MRZ is found
+        # Try each page until MRZ is found (pdf_mode=True for faster processing)
         for img_bytes in page_images:
-            result = extract_from_image(img_bytes)
+            result = extract_from_image(img_bytes, pdf_mode=True)
             if result.mrz.success:
                 return result
-        # No page had a valid MRZ — return last result or a generic error
+        # No page had a valid MRZ
         if page_images:
-            return extract_from_image(page_images[0])
+            return extract_from_image(page_images[0], pdf_mode=True)
         return OCRResult(
             mrz={"success": False, "error": "PDF has no pages"},
             image_hash="",

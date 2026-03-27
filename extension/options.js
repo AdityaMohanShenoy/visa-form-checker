@@ -84,6 +84,7 @@ async function handleFile(file) {
     if (!resp.ok) throw new Error(`API returned ${resp.status}`);
 
     const data = await resp.json();
+    console.log("OCR API response:", JSON.stringify(data, null, 2));
     extractedData = data;
 
     if (!data.mrz.success) {
@@ -111,7 +112,7 @@ async function handleFile(file) {
     anotherP.textContent = "Click to upload another";
     uploadArea.append(successP, anotherP);
 
-    renderFields(data.mrz.fields);
+    renderFields(data.mrz.fields || {});
     ocrResult.classList.remove("hidden");
 
     // Auto-fill profile label

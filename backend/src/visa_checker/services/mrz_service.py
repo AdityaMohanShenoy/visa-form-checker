@@ -19,23 +19,31 @@ def _get_mrz() -> FastMRZ:
     return _fast_mrz
 
 
-def _preprocess_variants(image_bytes: bytes) -> list[bytes]:
-    """Generate preprocessed image variants to improve MRZ detection on
-    real-world photos (angled, uneven lighting, fingers visible, etc.)."""
+def _rotation_variants(image_bytes: bytes) -> list[bytes]:
+    """Return original + 3 rotation variants (for scanned PDFs that may be sideways)."""
     arr = np.frombuffer(image_bytes, dtype=np.uint8)
     img = cv2.imdecode(arr, cv2.IMREAD_COLOR)
     if img is None:
         return [image_bytes]
 
     variants: list[bytes] = [image_bytes]
-
-    # Rotation variants — scanned PDFs are often rotated 90/180/270 degrees
     for angle in (cv2.ROTATE_90_CLOCKWISE, cv2.ROTATE_180, cv2.ROTATE_90_COUNTERCLOCKWISE):
         rotated = cv2.rotate(img, angle)
         _, buf = cv2.imencode(".jpg", rotated)
         variants.append(buf.tobytes())
+    return variants
 
-    # Variant: CLAHE contrast enhancement + sharpen
+
+def _full_variants(image_bytes: bytes) -> list[bytes]:
+    """Return original + rotations + enhancement variants for real-world photos."""
+    variants = _rotation_variants(image_bytes)
+
+    arr = np.frombuffer(image_bytes, dtype=np.uint8)
+    img = cv2.imdecode(arr, cv2.IMREAD_COLOR)
+    if img is None:
+        return variants
+
+    # CLAHE contrast enhancement + sharpen
     lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
     l_ch, a_ch, b_ch = cv2.split(lab)
     clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
@@ -47,7 +55,7 @@ def _preprocess_variants(image_bytes: bytes) -> list[bytes]:
     _, buf = cv2.imencode(".jpg", enhanced)
     variants.append(buf.tobytes())
 
-    # Variant 2: Grayscale adaptive threshold (handles uneven lighting)
+    # Grayscale adaptive threshold (handles uneven lighting)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     thresh = cv2.adaptiveThreshold(
         gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 31, 10
@@ -56,7 +64,7 @@ def _preprocess_variants(image_bytes: bytes) -> list[bytes]:
     _, buf = cv2.imencode(".jpg", thresh_bgr)
     variants.append(buf.tobytes())
 
-    # Variant 3: Upscale small images for better OCR
+    # Upscale small images for better OCR
     h, w = img.shape[:2]
     if max(h, w) < 2000:
         scale = 2000 / max(h, w)
@@ -101,6 +109,15 @@ def _try_extract(image_bytes: bytes, image_hash: str) -> OCRResult | None:
             document_type=parsed.get("document_code", "").strip() or None,
         )
 
+        # Validate that we actually got meaningful data — fastmrz can
+        # sometimes return "success" on garbage text containing '<' chars.
+        # At minimum we need a surname or passport number.
+        has_data = any([
+            fields.surname, fields.given_names, fields.passport_number,
+        ])
+        if not has_data:
+            return None  # Treat as no MRZ found, try next variant
+
         check_valid = parsed.get("status") != "FAILURE"
 
         return OCRResult(
@@ -121,15 +138,19 @@ def _try_extract(image_bytes: bytes, image_hash: str) -> OCRResult | None:
         Path(tmp_path).unlink(missing_ok=True)
 
 
-def extract_from_image(image_bytes: bytes) -> OCRResult:
+def extract_from_image(image_bytes: bytes, pdf_mode: bool = False) -> OCRResult:
     """Extract MRZ data from a passport/ID image.
 
-    Tries multiple preprocessed variants of the image to handle
-    real-world photos taken at angles or with uneven lighting.
+    Args:
+        image_bytes: Raw image bytes (JPEG/PNG).
+        pdf_mode: If True, only try rotations (skip heavy enhancements)
+                  since scanned PDFs are already clean.
     """
     image_hash = hashlib.sha256(image_bytes).hexdigest()
 
-    for variant_bytes in _preprocess_variants(image_bytes):
+    variants = _rotation_variants(image_bytes) if pdf_mode else _full_variants(image_bytes)
+
+    for variant_bytes in variants:
         result = _try_extract(variant_bytes, image_hash)
         if result is not None:
             return result
