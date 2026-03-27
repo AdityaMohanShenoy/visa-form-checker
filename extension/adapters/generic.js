@@ -25,6 +25,43 @@ const LABEL_PATTERNS = {
   postal_code: [/post\s*code/i, /zip\s*code/i, /postal/i],
 };
 
+const DATE_FIELDS = new Set(["date_of_birth", "expiry_date", "issue_date"]);
+
+function isLikelyDateValue(value) {
+  const v = (value || "").trim();
+  if (!v || !/\d/.test(v)) return false;
+  if (/^\d{8}$/.test(v)) return true;
+  if (/^\d{1,4}[/-]\d{1,2}[/-]\d{1,4}$/.test(v)) return true;
+  if (/^\d{1,2}\s+[A-Za-z]{3,9}\s+\d{2,4}$/.test(v)) return true;
+  if (/^[A-Za-z]{3,9}\s+\d{1,2},\s*\d{2,4}$/.test(v)) return true;
+  return false;
+}
+
+function isLikelyPersonName(value) {
+  const cleaned = (value || "").trim().replace(/\s+/g, " ");
+  if (!cleaned) return false;
+  const parts = cleaned.split(" ");
+  const alphaParts = parts.filter((p) => /[A-Za-z]/.test(p));
+  return alphaParts.length >= 2;
+}
+
+function shouldAcceptValue(canonical, value) {
+  if (DATE_FIELDS.has(canonical)) return isLikelyDateValue(value);
+  if (canonical === "full_name") return isLikelyPersonName(value);
+  return true;
+}
+
+function setFieldIfAbsent(fields, canonical, value, el) {
+  const trimmed = (value || "").trim();
+  if (!trimmed) return;
+  if (!shouldAcceptValue(canonical, trimmed)) return;
+  // Keep the first plausible match; later duplicates are often secondary sections.
+  if (!(canonical in fields)) {
+    fields[canonical] = trimmed;
+    if (el) el.dataset.visaCheckerField = canonical;
+  }
+}
+
 /**
  * Find the best label text for a form element.
  */
@@ -87,7 +124,7 @@ function matchLabel(labelText) {
 function extractFormFields() {
   const fields = {};
   const elements = document.querySelectorAll(
-    'input:not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="checkbox"]), select, textarea'
+    'input:not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]), select, textarea'
   );
 
   for (const el of elements) {
@@ -105,11 +142,7 @@ function extractFormFields() {
       value = el.value;
     }
 
-    if (value) {
-      fields[canonical] = value;
-      // Store the element reference for highlighting later
-      el.dataset.visaCheckerField = canonical;
-    }
+    setFieldIfAbsent(fields, canonical, value, el);
   }
 
   return fields;
@@ -136,11 +169,17 @@ function extractByNameId() {
   const fields = {};
   for (const [nameAttr, canonical] of Object.entries(NAME_ID_MAP)) {
     const el =
-      document.querySelector(`[name="${nameAttr}" i]`) ||
-      document.querySelector(`[id="${nameAttr}" i]`);
-    if (el && el.value) {
-      fields[canonical] = el.value;
-      el.dataset.visaCheckerField = canonical;
+      document.querySelector(
+        `input[name="${nameAttr}" i]:not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]), select[name="${nameAttr}" i], textarea[name="${nameAttr}" i]`
+      ) ||
+      document.querySelector(
+        `input[id="${nameAttr}" i]:not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]), select[id="${nameAttr}" i], textarea[id="${nameAttr}" i]`
+      );
+    if (el) {
+      const value = el.tagName === "SELECT"
+        ? (el.options[el.selectedIndex]?.text || el.options[el.selectedIndex]?.value || "")
+        : el.value;
+      setFieldIfAbsent(fields, canonical, value, el);
     }
   }
   return fields;

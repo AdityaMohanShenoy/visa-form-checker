@@ -47,7 +47,7 @@ async def create_profile(data: ProfileCreate):
     fields = data.model_dump(exclude_none=True)
     # Compute full_name if not provided
     if "full_name" not in fields and ("given_names" in fields or "surname" in fields):
-        parts = [fields.get("given_names", ""), fields.get("surname", "")]
+        parts = [fields.get("surname", ""), fields.get("given_names", "")]
         fields["full_name"] = " ".join(p for p in parts if p).strip()
 
     columns = ["id", "label", "created_at", "updated_at"] + [
@@ -98,7 +98,7 @@ async def update_profile(profile_id: str, data: ProfileUpdate):
         current = await cursor.fetchone()
         gn = fields.get("given_names", current["given_names"] or "")
         sn = fields.get("surname", current["surname"] or "")
-        fields["full_name"] = " ".join(p for p in [gn, sn] if p).strip()
+        fields["full_name"] = " ".join(p for p in [sn, gn] if p).strip()
 
     set_clause = ", ".join(f"{k} = ?" for k in fields)
     values = list(fields.values()) + [profile_id]
