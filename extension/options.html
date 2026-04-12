@@ -153,11 +153,36 @@
   </div>
 
   <div class="section">
+    <h2>Mobile App Pairing</h2>
+    <div class="hint">
+      Pair the mobile app by scanning a QR code. Both devices must be on the same WiFi network.
+    </div>
+    <label for="lanUrl">Backend LAN URL</label>
+    <div class="hint">
+      Enter your PC's local IP address (e.g., 192.168.1.42). Find it with <code>ipconfig</code> (Windows) or <code>ifconfig</code> / <code>ip addr</code> (macOS/Linux).
+    </div>
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <span style="font-family: monospace; white-space: nowrap;">http://</span>
+      <input type="text" id="lanIp" placeholder="192.168.1.42" style="flex: 1;">
+      <span style="font-family: monospace; white-space: nowrap;">:5050</span>
+    </div>
+    <button class="btn btn-primary" id="generateQrBtn" style="margin-top: 8px;">Generate QR Code</button>
+    <div id="qrMsg" class="msg hidden"></div>
+    <div id="qrContainer" class="hidden" style="margin-top: 16px; text-align: center;">
+      <canvas id="qrCanvas"></canvas>
+      <p style="font-size: 12px; color: #718096; margin-top: 8px;">
+        Open the mobile app and scan this QR code to connect.
+      </p>
+    </div>
+  </div>
+
+  <div class="section">
     <h2>Saved Profiles</h2>
     <div class="hint">Click a profile to expand details. You can edit or delete profiles.</div>
     <div id="profilesList"></div>
   </div>
 
+  <script src="lib/qrcode.js"></script>
   <script src="options.js"></script>
 </body>
 </html>

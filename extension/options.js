@@ -413,5 +413,61 @@ function showMsg(el, text, type) {
   setTimeout(() => el.classList.add("hidden"), 5000);
 }
 
+// --- QR Code Pairing ---
+
+const lanIpInput = document.getElementById("lanIp");
+const generateQrBtn = document.getElementById("generateQrBtn");
+const qrContainer = document.getElementById("qrContainer");
+const qrCanvas = document.getElementById("qrCanvas");
+const qrMsg = document.getElementById("qrMsg");
+
+generateQrBtn.addEventListener("click", async () => {
+  const ip = lanIpInput.value.trim();
+  if (!ip) {
+    showMsg(qrMsg, "Please enter your PC's local IP address", "error");
+    return;
+  }
+
+  const token = await getToken();
+  if (!token) {
+    showMsg(qrMsg, "Save your auth token first (above)", "error");
+    return;
+  }
+
+  const url = `http://${ip}:5050`;
+  const payload = JSON.stringify({ url, token });
+
+  // Generate QR using qrcode-generator library
+  const qr = qrcode(0, "M");
+  qr.addData(payload);
+  qr.make();
+
+  const moduleCount = qr.getModuleCount();
+  const cellSize = 6;
+  const margin = 16;
+  const size = moduleCount * cellSize + margin * 2;
+
+  qrCanvas.width = size;
+  qrCanvas.height = size;
+  const ctx = qrCanvas.getContext("2d");
+
+  // White background
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, size, size);
+
+  // Draw modules
+  ctx.fillStyle = "#000000";
+  for (let row = 0; row < moduleCount; row++) {
+    for (let col = 0; col < moduleCount; col++) {
+      if (qr.isDark(row, col)) {
+        ctx.fillRect(col * cellSize + margin, row * cellSize + margin, cellSize, cellSize);
+      }
+    }
+  }
+
+  qrContainer.classList.remove("hidden");
+  showMsg(qrMsg, "QR code generated! Scan it with the mobile app.", "success");
+});
+
 loadToken();
 loadProfiles();

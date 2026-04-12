@@ -50,6 +50,12 @@ visa-form-checker/
 ├── scripts/
 │   └── start.sh          # One-command backend startup (macOS/Linux)
 │   └── start.bat         # One-command backend startup (Windows)
+├── mobile/               # Flutter mobile app (Android/iOS)
+│   └── lib/
+│       ├── main.dart         # App entry point
+│       ├── screens/          # Pairing, Home, Capture, Review screens
+│       ├── services/         # API client, connection store
+│       └── models/           # Dart models matching backend API
 ├── Dockerfile            # Backend container image
 ├── docker-compose.yml    # Docker orchestration (backend + test-site)
 └── .dockerignore
@@ -246,6 +252,41 @@ These steps are the same regardless of which backend setup you chose.
    - **Docker setup:** run `docker compose exec backend cat /data/auth_token`
    - **Manual setup:** find it in the terminal output or at `~/.visa-checker/auth_token`
 4. Click **Save Token**
+
+### Mobile App (Optional)
+
+The Flutter mobile app lets you scan passports with your phone camera and automatically sync profiles to the Chrome extension on your PC.
+
+#### Prerequisites
+
+- [Flutter SDK](https://docs.flutter.dev/get-started/install) installed
+- Android device or emulator (iOS also supported)
+- Both your phone and PC must be on the **same WiFi network**
+
+#### 1. Set up the backend for LAN access
+
+The backend must be accessible from your phone over the network:
+
+- **Docker setup:** Already configured (binds to `0.0.0.0`)
+- **Manual setup:** Start with `VISA_CHECKER_HOST=0.0.0.0 python -m visa_checker.main`
+
+#### 2. Build and install the app
+
+```bash
+cd mobile
+flutter pub get
+flutter run
+```
+
+#### 3. Pair with QR code
+
+1. Open the Chrome extension **Settings** page on your PC
+2. Scroll to **Mobile App Pairing**
+3. Enter your PC's local IP address (find it with `ipconfig` on Windows or `ifconfig` on macOS/Linux)
+4. Click **Generate QR Code**
+5. Open the mobile app and scan the QR code
+
+Once paired, you can take passport photos from your phone and they'll appear as profiles in the Chrome extension.
 
 ## Usage
 

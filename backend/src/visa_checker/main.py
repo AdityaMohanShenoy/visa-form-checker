@@ -31,7 +31,7 @@ app.add_middleware(
         "http://127.0.0.1:8080",
         "http://localhost:8080",
     ],
-    allow_origin_regex=r"^chrome-extension://.*$",
+    allow_origin_regex=r"^(chrome-extension://.*|http://(192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)(:\d+)?)$",
     allow_methods=["*"],
     allow_headers=["*"],
 )
