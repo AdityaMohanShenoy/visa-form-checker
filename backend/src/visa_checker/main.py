@@ -60,7 +60,9 @@ async def health():
 def main():
     import os
     import uvicorn
-    reload = os.environ.get("VISA_CHECKER_RELOAD", "true").lower() == "true"
+    # Dev-only: the reloader spawns a watcher process and is not stable enough
+    # to leave running all day. Opt in with VISA_CHECKER_RELOAD=true.
+    reload = os.environ.get("VISA_CHECKER_RELOAD", "false").lower() == "true"
     uvicorn.run("visa_checker.main:app", host=HOST, port=PORT, reload=reload)
 
 
