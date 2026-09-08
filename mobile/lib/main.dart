@@ -40,6 +40,8 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+    // Persist the new address whenever the backend is found somewhere else.
+    _apiService.onRediscovered = _connectionStore.save;
     _init();
   }
 
