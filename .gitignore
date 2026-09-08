@@ -39,3 +39,8 @@ mobile/ios/.symlinks/
 
 # OS
 Thumbs.db
+
+# Android release signing — never commit
+mobile/android/key.properties
+*.jks
+*.keystore

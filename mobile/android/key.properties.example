@@ -1,0 +1,7 @@
+# Copy to key.properties and fill in. Never commit the real file.
+# Keep the keystore OUTSIDE this repo — losing it means you can never ship an
+# update that installs over an existing install.
+storeFile=/absolute/path/to/visa-checker-upload.jks
+storePassword=
+keyAlias=upload
+keyPassword=

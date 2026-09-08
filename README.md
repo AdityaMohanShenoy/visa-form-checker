@@ -288,6 +288,23 @@ flutter run
 
 Once paired, you can take passport photos from your phone and they'll appear as profiles in the Chrome extension.
 
+#### 4. Build a release APK
+
+Release builds are signed with a keystore referenced by `mobile/android/key.properties`
+(gitignored). Copy `key.properties.example`, point `storeFile` at your keystore, and:
+
+```bash
+cd mobile
+flutter build apk --release   # -> build/app/outputs/flutter-apk/app-release.apk
+```
+
+> **Back up the keystore and its password.** Android will only install an update
+> over an existing app if both are signed with the same key. Lose the keystore and
+> every user has to uninstall and re-pair to take another update.
+
+Without `key.properties` the build falls back to the debug key. That still runs, but
+the resulting APK is machine-specific and cannot update a real install.
+
 ## Usage
 
 ### Upload a passport
